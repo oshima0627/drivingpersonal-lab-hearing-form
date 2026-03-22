@@ -386,7 +386,11 @@
         </div>
       </div>
 
-      <form id="hearing-form" novalidate>
+      <form id="hearing-form" action="https://formsubmit.co/oshima6.27@gmail.com" method="POST" novalidate>
+        <input type="hidden" name="_subject" value="【事前メモ】運転パーソナルラボ セッションのご予約">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_next" value="about:blank">
         <div class="questions">
 
           <!-- Q1 -->
@@ -624,16 +628,36 @@
       btn.disabled = true;
       btn.textContent = '送信中...';
 
-      // ★ ここにPOST処理を追加してください
-      // 例: fetch('/api/hearing', { method: 'POST', body: new FormData(form) })
+      // Q2の複数選択をカンマ区切りで結合
+      const q2values = Array.from(form.querySelectorAll('input[name="q2"]:checked'))
+        .map(el => el.parentElement.textContent.trim())
+        .join('、');
 
-      // デモ用：1秒後に完了画面へ
-      setTimeout(() => {
-        document.getElementById('form-view').style.display = 'none';
-        const complete = document.getElementById('complete-screen');
-        complete.classList.add('show');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 1000);
+      const data = new FormData();
+      data.append('_subject', '【事前メモ】運転パーソナルラボ セッションのご予約');
+      data.append('_template', 'table');
+      data.append('_captcha', 'false');
+      data.append('Q1_最後に運転した時期', form.querySelector('input[name="q1"]:checked')?.parentElement.textContent.trim() || '');
+      data.append('Q2_気になっていること', q2values);
+      data.append('Q3_緊張する場面', form.querySelector('textarea[name="q3"]').value.trim() || '（なし）');
+      data.append('Q4_今日のセッションの目的', form.querySelector('input[name="q4"]:checked')?.parentElement.textContent.trim() || '');
+      data.append('Q5_スタッフへの伝言', form.querySelector('textarea[name="q5"]').value.trim() || '（なし）');
+
+      fetch('https://formsubmit.co/oshima6.27@gmail.com', {
+        method: 'POST',
+        body: data
+      })
+        .then(() => {
+          document.getElementById('form-view').style.display = 'none';
+          const complete = document.getElementById('complete-screen');
+          complete.classList.add('show');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(() => {
+          btn.disabled = false;
+          btn.textContent = '送信する';
+          alert('送信に失敗しました。時間をおいて再度お試しください。');
+        });
     });
 
     // バリデーションエラーを入力後にリセット
