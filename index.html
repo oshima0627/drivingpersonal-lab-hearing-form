@@ -650,7 +650,7 @@
 
       // ニックネームを件名に反映
       const nickname = document.getElementById('nickname-input').value.trim();
-      document.getElementById('form-subject').value = `【運転パーソナルラボ】「${nickname}」のヒアリング内容`;
+      document.getElementById('form-subject').value = `【運転パーソナルラボ】${nickname}さんのヒアリング内容`;
 
       // Q2の複数選択をカンマ区切りで結合
       const q2values = Array.from(form.querySelectorAll('input[name="q2"]:checked'))
@@ -658,7 +658,7 @@
         .join('、');
 
       const data = new FormData();
-      data.append('_subject', `【運転パーソナルラボ】「${nickname}」のヒアリング内容`);
+      data.append('_subject', `【運転パーソナルラボ】${nickname}さんのヒアリング内容`);
       data.append('_template', 'table');
       data.append('_captcha', 'false');
       data.append('Q1_最後に運転した時期', form.querySelector('input[name="q1"]:checked')?.parentElement.textContent.trim() || '');
