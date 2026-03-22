@@ -387,11 +387,22 @@
       </div>
 
       <form id="hearing-form" action="https://formsubmit.co/oshima6.27@gmail.com" method="POST" novalidate>
-        <input type="hidden" name="_subject" value="【事前メモ】運転パーソナルラボ セッションのご予約">
         <input type="hidden" name="_template" value="table">
         <input type="hidden" name="_captcha" value="false">
         <input type="hidden" name="_next" value="about:blank">
+        <input type="hidden" name="_subject" id="form-subject" value="">
         <div class="questions">
+
+          <!-- ニックネーム -->
+          <div class="q-card" id="nickname-card" style="animation-delay:0.1s">
+            <div class="q-header">
+              <div class="q-num">はじめに</div>
+              <div class="q-text">ニックネームを教えてください</div>
+            </div>
+            <input type="text" name="ニックネーム" id="nickname-input" placeholder="例：さくら、たろう など" autocomplete="off"
+              style="width:100%;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:300;color:var(--text);background:#fff;outline:none;transition:border-color 0.15s,box-shadow 0.15s;">
+            <div class="error-msg">ニックネームを入力してください</div>
+          </div>
 
           <!-- Q1 -->
           <div class="q-card" id="q1-card">
@@ -580,6 +591,15 @@
     function validate() {
       let valid = true;
 
+      // ニックネーム
+      const nicknameCard = document.getElementById('nickname-card');
+      if (!document.getElementById('nickname-input').value.trim()) {
+        nicknameCard.classList.add('has-error');
+        valid = false;
+      } else {
+        nicknameCard.classList.remove('has-error');
+      }
+
       // Q1
       const q1card = document.getElementById('q1-card');
       if (!form.querySelector('input[name="q1"]:checked')) {
@@ -628,13 +648,17 @@
       btn.disabled = true;
       btn.textContent = '送信中...';
 
+      // ニックネームを件名に反映
+      const nickname = document.getElementById('nickname-input').value.trim();
+      document.getElementById('form-subject').value = `【運転パーソナルラボ】「${nickname}」のヒアリング内容`;
+
       // Q2の複数選択をカンマ区切りで結合
       const q2values = Array.from(form.querySelectorAll('input[name="q2"]:checked'))
         .map(el => el.parentElement.textContent.trim())
         .join('、');
 
       const data = new FormData();
-      data.append('_subject', '【事前メモ】運転パーソナルラボ セッションのご予約');
+      data.append('_subject', `【運転パーソナルラボ】「${nickname}」のヒアリング内容`);
       data.append('_template', 'table');
       data.append('_captcha', 'false');
       data.append('Q1_最後に運転した時期', form.querySelector('input[name="q1"]:checked')?.parentElement.textContent.trim() || '');
@@ -666,6 +690,9 @@
         const card = this.closest('.q-card');
         if (card) card.classList.remove('has-error');
       });
+    });
+    document.getElementById('nickname-input').addEventListener('input', function() {
+      document.getElementById('nickname-card').classList.remove('has-error');
     });
   </script>
 
