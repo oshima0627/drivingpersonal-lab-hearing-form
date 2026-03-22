@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事前メモ｜運転パーソナルラボ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #1a2744;
+      --blue: #3B8EF0;
+      --blue-light: #EBF3FE;
+      --blue-mid: #c5ddfb;
+      --white: #F8F9FC;
+      --gray: #6b7280;
+      --gray-light: #f1f4f9;
+      --text: #1e293b;
+      --border: #e2e8f0;
+      --error: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--white);
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+
+    .page-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    /* ヘッダー */
+    .header {
+      padding: 56px 0 36px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+    }
+
+    .brand {
+      font-size: 11px;
+      color: var(--gray);
+      letter-spacing: 0.12em;
+      margin-bottom: 16px;
+    }
+
+    .header h1 {
+      font-size: clamp(20px, 4vw, 24px);
+      font-weight: 500;
+      color: var(--navy);
+      line-height: 1.5;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .header-note {
+      font-size: 13px;
+      color: var(--gray);
+      line-height: 2;
+    }
+
+    /* プログレスバー：非表示 */
+    .progress-wrap { display: none; }
+
+    /* 質問カード */
+    .questions {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .q-card {
+      background: transparent;
+      padding: 32px 0;
+      border-bottom: 1px solid var(--border);
+      opacity: 0;
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    .q-card:first-child { border-top: 1px solid var(--border); }
+    .q-card:nth-child(1) { animation-delay: 0.15s; }
+    .q-card:nth-child(2) { animation-delay: 0.25s; }
+    .q-card:nth-child(3) { animation-delay: 0.35s; }
+    .q-card:nth-child(4) { animation-delay: 0.45s; }
+    .q-card:nth-child(5) { animation-delay: 0.55s; }
+
+    .q-card.focused { background: transparent; }
+
+    .q-header {
+      margin-bottom: 18px;
+    }
+
+    .q-num {
+      font-size: 11px;
+      color: var(--gray);
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .q-meta { flex: 1; }
+
+    .q-tag { display: none; }
+
+    .q-text {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--navy);
+      line-height: 1.7;
+    }
+
+    .q-optional {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--gray);
+      background: var(--gray-light);
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 8px;
+      font-weight: 300;
+      vertical-align: middle;
+    }
+
+    /* 選択肢 */
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .options.inline {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+      user-select: none;
+      background: #fff;
+    }
+
+    .option-label:hover {
+      border-color: var(--blue);
+      background: var(--blue-light);
+    }
+
+    .option-label input { display: none; }
+
+    .option-label .check {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .option-label.checkbox .check { border-radius: 4px; }
+
+    .option-label input:checked ~ .check {
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .option-label input:checked ~ .check::after {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 8px;
+      border: 2px solid white;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+
+    .option-label input[type="radio"]:checked ~ .check::after {
+      content: '';
+      display: block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: white;
+      border: none;
+      transform: none;
+      margin: auto;
+    }
+
+    .option-label:has(input:checked) {
+      border-color: var(--blue);
+      background: var(--blue-light);
+      color: var(--navy);
+    }
+
+    /* テキストエリア */
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--text);
+      resize: vertical;
+      min-height: 88px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: #fff;
+      line-height: 1.8;
+      outline: none;
+    }
+
+    textarea::placeholder { color: #b0bac8; }
+
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(59,142,240,0.08);
+    }
+
+    .textarea-hint {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+
+    /* 送信ボタン */
+    .submit-wrap {
+      margin-top: 40px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.65s forwards;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px 32px;
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .submit-btn:hover {
+      background: #243460;
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:active { transform: translateY(0); }
+
+    .submit-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .submit-note {
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 12px;
+      line-height: 1.8;
+    }
+
+    /* バリデーションエラー */
+    .error-msg {
+      font-size: 12px;
+      color: var(--error);
+      margin-top: 8px;
+      display: none;
+    }
+
+    .q-card.has-error .error-msg { display: block; }
+    .q-card.has-error .q-text { color: var(--error); }
+
+    /* 完了画面 */
+    .complete-screen {
+      display: none;
+      text-align: center;
+      padding: 80px 0;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards;
+    }
+
+    .complete-screen.show {
+      display: block;
+    }
+
+    .complete-icon {
+      width: 72px;
+      height: 72px;
+      background: var(--blue-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+
+    .complete-icon svg {
+      width: 36px;
+      height: 36px;
+      stroke: var(--blue);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .complete-screen h2 {
+      font-size: 22px;
+      color: var(--navy);
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .complete-screen p {
+      font-size: 15px;
+      color: var(--gray);
+      line-height: 1.9;
+    }
+
+    .complete-screen .accent {
+      color: var(--blue);
+      font-weight: 500;
+    }
+
+    /* アニメーション */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* スマホ対応 */
+    @media (max-width: 480px) {
+      .q-card { padding: 20px 18px; }
+      .q-text { font-size: 15px; }
+      .header h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <!-- フォーム本体 -->
+    <div id="form-view">
+      <header class="header">
+        <div class="brand">運転パーソナルラボ</div>
+        <h1>セッションの前に、<br>少しだけ教えてください。</h1>
+        <p class="header-note">
+          当日の時間をあなたのために使うための、かんたんなメモです。<br>
+          正解はないので、思ったままで大丈夫です。
+        </p>
+      </header>
+
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>回答の進み具合</span>
+          <span id="progress-text">0 / 5</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <form id="hearing-form" novalidate>
+        <div class="questions">
+
+          <!-- Q1 -->
+          <div class="q-card" id="q1-card">
+            <div class="q-header">
+              <div class="q-num">Q1</div>
+              <div class="q-text">最後に車を運転したのは、いつ頃ですか？</div>
+            </div>
+            <div class="options">
+              <label class="option-label">
+                <input type="radio" name="q1" value="1week">
+                <span class="check"></span>1週間以内
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q1" value="1month">
+                <span class="check"></span>1ヶ月以内
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q1" value="6month">
+                <span class="check"></span>半年以内
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q1" value="1year">
+                <span class="check"></span>1年以上前
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q1" value="almost_never">
+                <span class="check"></span>ほぼ乗っていない
+              </label>
+            </div>
+            <div class="error-msg">選んでいただけますか？</div>
+          </div>
+
+          <!-- Q2 -->
+          <div class="q-card" id="q2-card">
+            <div class="q-header">
+              <div class="q-num">Q2</div>
+              <div class="q-text">今、運転に関して気になっていることは？<br><small style="font-weight:300;font-size:12px;color:var(--gray)">当てはまるものをすべて選んでください</small></div>
+            </div>
+            <div class="options">
+              <label class="option-label checkbox">
+                <input type="checkbox" name="q2" value="knowledge">
+                <span class="check"></span>交通ルールや標識がちょっと曖昧
+              </label>
+              <label class="option-label checkbox">
+                <input type="checkbox" name="q2" value="skill">
+                <span class="check"></span>ハンドル操作や駐車が不安
+              </label>
+              <label class="option-label checkbox">
+                <input type="checkbox" name="q2" value="experience">
+                <span class="check"></span>過去に怖い経験がある
+              </label>
+              <label class="option-label checkbox">
+                <input type="checkbox" name="q2" value="alone">
+                <span class="check"></span>一人で乗るのが不安
+              </label>
+              <label class="option-label checkbox">
+                <input type="checkbox" name="q2" value="unknown">
+                <span class="check"></span>うまく言葉にできない
+              </label>
+            </div>
+            <div class="error-msg">1つ以上選んでいただけますか？</div>
+          </div>
+
+          <!-- Q3 -->
+          <div class="q-card" id="q3-card">
+            <div class="q-header">
+              <div class="q-num">Q3</div>
+              <div class="q-text">特に緊張する、と感じる場面はありますか？<span class="q-optional">任意</span></div>
+            </div>
+            <textarea name="q3" placeholder="例：「合流が一番怖い」「駐車場に入るとき緊張する」など。なければ空白でOKです。"></textarea>
+            <div class="textarea-hint">思い当たることがあれば、どんな一言でも</div>
+          </div>
+
+          <!-- Q4 -->
+          <div class="q-card" id="q4-card">
+            <div class="q-header">
+              <div class="q-num">Q4</div>
+              <div class="q-text">今日のセッション、どんな時間にしたいですか？</div>
+            </div>
+            <div class="options">
+              <label class="option-label">
+                <input type="radio" name="q4" value="organize">
+                <span class="check"></span>不安を言葉にして、少し整理したい
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q4" value="listen">
+                <span class="check"></span>話を聞いてもらえるだけでいい
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q4" value="next_step">
+                <span class="check"></span>次の一歩を一緒に考えたい
+              </label>
+              <label class="option-label">
+                <input type="radio" name="q4" value="casual">
+                <span class="check"></span>なんとなく来てみた
+              </label>
+            </div>
+            <div class="error-msg">選んでいただけますか？</div>
+          </div>
+
+          <!-- Q5 -->
+          <div class="q-card" id="q5-card">
+            <div class="q-header">
+              <div class="q-num">Q5</div>
+              <div class="q-text">スタッフに事前に伝えておきたいことがあれば。<span class="q-optional">任意</span></div>
+            </div>
+            <textarea name="q5" placeholder="配慮してほしいこと、気になっていること、なんでも。なければ空白でOKです。"></textarea>
+            <div class="textarea-hint">どんな一言でも、スタッフが丁寧に読みます</div>
+          </div>
+
+        </div><!-- /questions -->
+
+        <div class="submit-wrap">
+          <button type="submit" class="submit-btn" id="submit-btn">
+            送信する
+          </button>
+          <p class="submit-note">
+            回答内容はセッションの進行にのみ使用します。<br>外部への提供や分析には利用しません。
+          </p>
+        </div>
+      </form>
+
+    </div><!-- /form-view -->
+
+    <!-- 完了画面 -->
+    <div class="complete-screen" id="complete-screen">
+      <div class="complete-icon">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2>ありがとうございます</h2>
+      <p>
+        メモを受け取りました。<br>
+        当日、スタッフが丁寧に読んでからセッションに臨みます。<br><br>
+        <span class="accent">どうぞ、気楽にいらしてください。</span>
+      </p>
+    </div>
+
+  </div><!-- /page-wrap -->
+
+  <script>
+    const form = document.getElementById('hearing-form');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const TOTAL = 5;
+
+    // 必須フィールドのリスト（Q3, Q5は任意）
+    const required = ['q1', 'q2', 'q4'];
+
+    // 回答状態を追跡
+    function countAnswered() {
+      let count = 0;
+      // Q1
+      if (form.querySelector('input[name="q1"]:checked')) count++;
+      // Q2
+      if (form.querySelector('input[name="q2"]:checked')) count++;
+      // Q3
+      if (form.querySelector('textarea[name="q3"]').value.trim()) count++;
+      // Q4
+      if (form.querySelector('input[name="q4"]:checked')) count++;
+      // Q5
+      if (form.querySelector('textarea[name="q5"]').value.trim()) count++;
+      return count;
+    }
+
+    function updateProgress() {
+      const answered = countAnswered();
+      const pct = (answered / TOTAL) * 100;
+      progressFill.style.width = pct + '%';
+      progressText.textContent = answered + ' / ' + TOTAL;
+    }
+
+    // フォーカス検知
+    form.querySelectorAll('.q-card').forEach(card => {
+      card.querySelectorAll('input, textarea').forEach(el => {
+        el.addEventListener('focus', () => {
+          document.querySelectorAll('.q-card').forEach(c => c.classList.remove('focused'));
+          card.classList.add('focused');
+        });
+      });
+    });
+
+    form.addEventListener('change', updateProgress);
+    form.querySelectorAll('textarea').forEach(t => t.addEventListener('input', updateProgress));
+
+    // バリデーション
+    function validate() {
+      let valid = true;
+
+      // Q1
+      const q1card = document.getElementById('q1-card');
+      if (!form.querySelector('input[name="q1"]:checked')) {
+        q1card.classList.add('has-error');
+        valid = false;
+      } else {
+        q1card.classList.remove('has-error');
+      }
+
+      // Q2
+      const q2card = document.getElementById('q2-card');
+      if (!form.querySelector('input[name="q2"]:checked')) {
+        q2card.classList.add('has-error');
+        valid = false;
+      } else {
+        q2card.classList.remove('has-error');
+      }
+
+      // Q4
+      const q4card = document.getElementById('q4-card');
+      if (!form.querySelector('input[name="q4"]:checked')) {
+        q4card.classList.add('has-error');
+        valid = false;
+      } else {
+        q4card.classList.remove('has-error');
+      }
+
+      return valid;
+    }
+
+    // 送信
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      if (!validate()) {
+        // 最初のエラーにスクロール
+        const firstError = document.querySelector('.q-card.has-error');
+        if (firstError) {
+          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+
+      // 送信処理（ここにAPIやフォーム送信処理を追加）
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = '送信中...';
+
+      // ★ ここにPOST処理を追加してください
+      // 例: fetch('/api/hearing', { method: 'POST', body: new FormData(form) })
+
+      // デモ用：1秒後に完了画面へ
+      setTimeout(() => {
+        document.getElementById('form-view').style.display = 'none';
+        const complete = document.getElementById('complete-screen');
+        complete.classList.add('show');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 1000);
+    });
+
+    // バリデーションエラーを入力後にリセット
+    form.querySelectorAll('input').forEach(input => {
+      input.addEventListener('change', function() {
+        const card = this.closest('.q-card');
+        if (card) card.classList.remove('has-error');
+      });
+    });
+  </script>
+
+</body>
+</html>
